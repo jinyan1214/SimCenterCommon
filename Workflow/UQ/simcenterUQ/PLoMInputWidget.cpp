@@ -274,6 +274,7 @@ PLoMInputWidget::PLoMInputWidget(QWidget *parent)
     epsilonPCA->setVisible(false);
     newEpsilonPCA->setVisible(false);
     advGeneralLayout->setColumnStretch(4,1);
+    advGeneralLayout->setRowStretch(3,1);
     //
     advComboWidget->addTab(advGeneralWidget, "General");
 
@@ -345,6 +346,7 @@ PLoMInputWidget::PLoMInputWidget(QWidget *parent)
     tolKDE_check->setDisabled(false);
     connect(theDMCheckBox,SIGNAL(toggled(bool)),this,SLOT(setDiffMaps(bool)));
     advKDELayout->setColumnStretch(6,1);
+    advKDELayout->setRowStretch(3, 1);
     tolKDE_path_warning->hide();
 
     //
