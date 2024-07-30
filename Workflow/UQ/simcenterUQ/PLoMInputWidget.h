@@ -53,6 +53,8 @@ class QStackedWidget;
 //class InputWidgetFEM;
 class QComboBox;
 class QTabWidget;
+class QRadioButton;
+class QGridLayout;
 
 #include "SC_FileEdit.h"
 #include "SC_DoubleLineEdit.h"
@@ -75,6 +77,8 @@ public:
     int parsePretrainedModelForRVQoI(QString name1);
     int numSamples;
     bool copyFiles(QString &fileDir);
+private:
+    QStringList parseLineCSV(const QString &csvString);
 public slots:
     void setOutputDir(bool tog);
     void setConstraints(bool tog);
@@ -122,6 +126,8 @@ private:
     QLabel * theConstraintsLabel2;
     QLabel * numIterLabel;
     QLabel * tolIterLabel;
+    QLabel * ENVConstraintLabel;
+    QLabel * SIMConstraintLabel;
 
     //InputWidgetParameters *theParameters;
     //InputWidgetEDP *theEdpWidget;
@@ -139,12 +145,20 @@ private:
     QWidget* advGeneralWidget;
     QWidget* advKDEWidget;
     QWidget* advConstraintsWidget;
+    QGridLayout* advConstraintsLayout;
     //QStackedWidget* adv_stackedWidgets;
 
     int countColumn(QString name1);
     bool preTrained;
 
     QTabWidget *advComboWidget;
+
+    QStringList inputRVnames;
+    QList<QRadioButton*> SIMButtonList;
+    QList<QRadioButton*> ENVButtonList;
+    QList<QLabel*> constraintsLabelList;
+    QList<QButtonGroup*> buttonGroupList;
+
 };
 
 #endif // PLOM_INPUT_WIDGET_H

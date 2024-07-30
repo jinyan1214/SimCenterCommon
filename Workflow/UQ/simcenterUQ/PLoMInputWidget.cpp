@@ -353,7 +353,7 @@ PLoMInputWidget::PLoMInputWidget(QWidget *parent)
 
     advConstraintsWidget = new QWidget();
     //advConstraintsWidget->setMaximumWidth(800);
-    QGridLayout* advConstraintsLayout = new QGridLayout(advConstraintsWidget);
+    advConstraintsLayout = new QGridLayout(advConstraintsWidget);
     advConstraintsWidget->setLayout(advConstraintsLayout);
     //
     theConstraintsButton = new QCheckBox();
@@ -409,6 +409,9 @@ PLoMInputWidget::PLoMInputWidget(QWidget *parent)
     tolIterLabel->setVisible(false);
     tolIter->setDisabled(1);
     tolIter->setStyleSheet("background-color: lightgrey;border-color:grey");
+
+    SIMConstraintLabel = new QLabel("SIM");
+    ENVConstraintLabel = new QLabel("ENV");
     //
     advComboWidget->addTab(advConstraintsWidget, "Constraints");
 
@@ -487,6 +490,11 @@ void PLoMInputWidget::doAdvancedSetup(bool tog)
     numIterLabel->setVisible(tog);
     tolIter->setVisible(tog);
     tolIterLabel->setVisible(tog);
+    for (int i = 0; i < constraintsLabelList.length(); i++){
+        constraintsLabelList.at(i)->setVisible(tog);
+        ENVButtonList.at(i)->setVisible(tog);
+        SIMButtonList.at(i)->setVisible(tog);
+    }
 }
 
 
@@ -522,6 +530,11 @@ void PLoMInputWidget::setConstraints(bool tog)
         tolIter->setStyleSheet("background-color: white");
         numIter->setDisabled(0);
         tolIter->setDisabled(0);
+        for (int i = 0; i < constraintsLabelList.length(); i++){
+            constraintsLabelList.at(i)->setDisabled(0);
+            SIMButtonList.at(i)->setDisabled(0);
+            ENVButtonList.at(i)->setDisabled(0);
+        }
     } else {
         constraintsPath->setDisabled(1);
         chooseConstraints->setDisabled(1);
@@ -530,6 +543,11 @@ void PLoMInputWidget::setConstraints(bool tog)
         tolIter->setStyleSheet("background-color: lightgrey;border-color:grey");
         numIter->setDisabled(1);
         tolIter->setDisabled(1);
+        for (int i = 0; i < constraintsLabelList.length(); i++){
+            constraintsLabelList.at(i)->setDisabled(1);
+            SIMButtonList.at(i)->setDisabled(1);
+            ENVButtonList.at(i)->setDisabled(1);
+        }
     }
 }
 
@@ -599,7 +617,100 @@ PLoMInputWidget::outputToJSON(QJsonObject &jsonObj){
 
 int PLoMInputWidget::parseInputDataForRV(QString name1){
 
-    double numberOfColumns=countColumn(name1);
+    // countColumn and save headers to inputRVnames
+    // get number of columns
+    std::ifstream inFile(name1.toStdString());
+    // read lines of input searching for pset using regular expression
+    std::string line;
+    errMSG->hide();
+    int numberOfColumns_pre = -100;
+    bool header = true;
+    while (std::getline(inFile, line)) {
+        int  numberOfColumns=1;
+        bool previousWasSpace=false;
+        //for(int i=0; i<line.size(); i++){
+        if (header){
+            header = false;
+            // Clear the inputRVnames
+            inputRVnames.clear();
+            // Remove existing constraints labals
+            for(int i = 0; i < constraintsLabelList.length(); i++){
+                advConstraintsLayout->removeWidget(constraintsLabelList.at(i));
+                delete constraintsLabelList.at(i);
+            }
+            constraintsLabelList.clear();
+            // Remove existing SIMButtonList
+            for(int i = 0; i < SIMButtonList.length(); i++){
+                advConstraintsLayout->removeWidget(SIMButtonList.at(i));
+                delete SIMButtonList.at(i);
+            }
+            SIMButtonList.clear();
+
+            // Remove existing ENVButtonList
+            for(int i = 0; i < ENVButtonList.length(); i++){
+                advConstraintsLayout->removeWidget(ENVButtonList.at(i));
+                delete ENVButtonList.at(i);
+            }
+            ENVButtonList.clear();
+
+            // Remove existing radio button grouplist
+            for(int i = 0; i < buttonGroupList.length(); i++){
+                delete buttonGroupList.at(i);
+            }
+            buttonGroupList.clear();
+
+            // Remove the ENV and SIM labels
+            advConstraintsLayout->removeWidget(ENVConstraintLabel);
+            advConstraintsLayout->removeWidget(SIMConstraintLabel);
+
+            // Parse the hearder line and add them to lists
+            inputRVnames = parseLineCSV(QString(line.c_str()));
+            foreach (QString rv, inputRVnames) {
+                QRadioButton* SIMButton = new QRadioButton(this);
+                QRadioButton* ENVButton = new QRadioButton(this);
+                QButtonGroup* buttonGroup = new QButtonGroup(this);
+
+                SIMButtonList.append(SIMButton);
+                ENVButtonList.append(ENVButton);
+                buttonGroup->addButton(SIMButton, 1);
+                buttonGroup->addButton(ENVButton, 2);
+                buttonGroupList.append(buttonGroup);
+                constraintsLabelList.append(new QLabel(rv));
+            }
+        }
+        for(size_t i=0; i<line.size(); i++){
+            if(line[i] == '%' || line[i] == '#'){ // ignore header
+                numberOfColumns = numberOfColumns_pre;
+                break;
+            }
+            if(line[i] == ' ' || line[i] == '\t' || line[i] == ','){
+                if(!previousWasSpace)
+                    numberOfColumns++;
+                previousWasSpace = true;
+            } else {
+                previousWasSpace = false;
+            }
+        }
+        if(previousWasSpace)// when there is a blank space at the end of each row
+            numberOfColumns--;
+
+        if (numberOfColumns_pre==-100)  // to pass header
+        {
+            numberOfColumns_pre=numberOfColumns;
+            continue;
+        }
+        if (numberOfColumns != numberOfColumns_pre)// Send an error
+        {
+            errMSG->show();
+            numberOfColumns_pre=0;
+            break;
+        }
+    }
+    // close file
+    inFile.close();
+
+    // Original parseInputDataForRV
+    double numberOfColumns=numberOfColumns_pre;
 
     QStringList varNamesAndValues;
     for (int i=0;i<numberOfColumns;i++) {
@@ -608,6 +719,38 @@ int PLoMInputWidget::parseInputDataForRV(QString name1){
     }
     //theParameters->setGPVarNamesAndValues(varNamesAndValues);
     numSamples=0;
+
+
+    // Add parsed RV to constraints:
+    advConstraintsLayout->addWidget(ENVConstraintLabel, 4, 0);
+    advConstraintsLayout->addWidget(SIMConstraintLabel, 4, 1);
+    for (int i = 0; i < inputRVnames.length(); i++){
+        advConstraintsLayout->addWidget(SIMButtonList.at(i), 5+i, 0);
+        advConstraintsLayout->addWidget(ENVButtonList.at(i), 5+i, 1);
+        advConstraintsLayout->addWidget(constraintsLabelList.at(i), 5+i, 2);
+
+        if (theAdvancedCheckBox->isChecked()){
+            SIMButtonList.at(i)->setVisible(true); // Only visible if adv opt checked
+            ENVButtonList.at(i)->setVisible(true);
+            constraintsLabelList.at(i)->setVisible(true);
+        } else {
+            SIMButtonList.at(i)->setVisible(false); // Only visible if adv opt checked
+            ENVButtonList.at(i)->setVisible(false);
+            constraintsLabelList.at(i)->setVisible(false);
+        }
+
+        if (theConstraintsButton->isChecked()){
+            SIMButtonList.at(i)->setDisabled(0); // Only enabled if add constraint checked
+            ENVButtonList.at(i)->setDisabled(0);
+        } else {
+            SIMButtonList.at(i)->setDisabled(1); // Only enabled if add constraint checked
+            ENVButtonList.at(i)->setDisabled(1);
+        }
+
+
+
+    }
+
     return 0;
 }
 
@@ -886,4 +1029,82 @@ int
 PLoMInputWidget::getNumberTasks()
 {
   return numSamples;
+}
+
+QStringList PLoMInputWidget::parseLineCSV(const QString &csvString)
+{
+  QStringList fields;
+  QString value;
+
+  bool hasQuote = false;
+
+  for (int i = 0; i < csvString.size(); ++i)
+  {
+        const QChar current = csvString.at(i);
+
+        // Normal state
+        if (hasQuote == false)
+        {
+        // Comma
+        if (current == ',')
+        {
+            // Save field
+            fields.append(value.trimmed());
+            value.clear();
+        }
+
+        // Double-quote
+        else if (current == '"')
+        {
+            hasQuote = true;
+            value += current;
+        }
+
+        // Other character
+        else
+            value += current;
+        }
+        else if (hasQuote)
+        {
+        // Check for another double-quote
+        if (current == '"')
+        {
+            if (i < csvString.size())
+            {
+                    // A double double-quote?
+                    if (i+1 < csvString.size() && csvString.at(i+1) == '"')
+                    {
+                        value += '"';
+
+                        // Skip a second quote character in a row
+                        i++;
+                    }
+                    else
+                    {
+                        hasQuote = false;
+                        value += '"';
+                    }
+            }
+        }
+
+        // Other character
+        else
+            value += current;
+        }
+  }
+
+  if (!value.isEmpty())
+        fields.append(value.trimmed());
+
+
+  // Remove quotes and whitespace around quotes
+  for (int i=0; i<fields.size(); ++i)
+        if (fields[i].length()>=1 && fields[i].left(1)=='"')
+        {
+        fields[i]=fields[i].mid(1);
+        if (fields[i].length()>=1 && fields[i].right(1)=='"')
+            fields[i]=fields[i].left(fields[i].length()-1);
+        }
+
+  return fields;
 }
