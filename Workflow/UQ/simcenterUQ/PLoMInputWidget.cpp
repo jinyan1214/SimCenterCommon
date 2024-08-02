@@ -413,7 +413,7 @@ PLoMInputWidget::PLoMInputWidget(QWidget *parent)
     tolIter->setStyleSheet("background-color: lightgrey;border-color:grey");
 
     SIMConstraintLabel = new QLabel("SIM");
-    ENVConstraintLabel = new QLabel("ENV");
+    EVTConstraintLabel = new QLabel("EVT");
     //
     advComboWidget->addTab(advConstraintsWidget, "Constraints");
 
@@ -494,7 +494,7 @@ void PLoMInputWidget::doAdvancedSetup(bool tog)
     tolIterLabel->setVisible(tog);
     for (int i = 0; i < constraintsLabelList.length(); i++){
         constraintsLabelList.at(i)->setVisible(tog);
-        ENVButtonList.at(i)->setVisible(tog);
+        EVTButtonList.at(i)->setVisible(tog);
         SIMButtonList.at(i)->setVisible(tog);
     }
 }
@@ -535,7 +535,7 @@ void PLoMInputWidget::setConstraints(bool tog)
         for (int i = 0; i < constraintsLabelList.length(); i++){
             constraintsLabelList.at(i)->setDisabled(0);
             SIMButtonList.at(i)->setDisabled(0);
-            ENVButtonList.at(i)->setDisabled(0);
+            EVTButtonList.at(i)->setDisabled(0);
         }
     } else {
         constraintsPath->setDisabled(1);
@@ -548,7 +548,7 @@ void PLoMInputWidget::setConstraints(bool tog)
         for (int i = 0; i < constraintsLabelList.length(); i++){
             constraintsLabelList.at(i)->setDisabled(1);
             SIMButtonList.at(i)->setDisabled(1);
-            ENVButtonList.at(i)->setDisabled(1);
+            EVTButtonList.at(i)->setDisabled(1);
         }
     }
 }
@@ -609,6 +609,8 @@ PLoMInputWidget::outputToJSON(QJsonObject &jsonObj){
             jsonObj["constraintsFile"] = constraintsPath->text();
             jsonObj["numIter"] = numIter->text().toInt();
             jsonObj["tolIter"] = tolIter->text().toDouble();
+            //If training datase is import data file and raw data
+            if
         }
     }
     jsonObj["parallelExecution"]=false;
@@ -648,12 +650,12 @@ int PLoMInputWidget::parseInputDataForRV(QString name1){
             }
             SIMButtonList.clear();
 
-            // Remove existing ENVButtonList
-            for(int i = 0; i < ENVButtonList.length(); i++){
-                advConstraintsLayout->removeWidget(ENVButtonList.at(i));
-                delete ENVButtonList.at(i);
+            // Remove existing EVTButtonList
+            for(int i = 0; i < EVTButtonList.length(); i++){
+                advConstraintsLayout->removeWidget(EVTButtonList.at(i));
+                delete EVTButtonList.at(i);
             }
-            ENVButtonList.clear();
+            EVTButtonList.clear();
 
             // Remove existing radio button grouplist
             for(int i = 0; i < buttonGroupList.length(); i++){
@@ -661,21 +663,21 @@ int PLoMInputWidget::parseInputDataForRV(QString name1){
             }
             buttonGroupList.clear();
 
-            // Remove the ENV and SIM labels
-            advConstraintsLayout->removeWidget(ENVConstraintLabel);
+            // Remove the EVT and SIM labels
+            advConstraintsLayout->removeWidget(EVTConstraintLabel);
             advConstraintsLayout->removeWidget(SIMConstraintLabel);
 
             // Parse the hearder line and add them to lists
             inputRVnames = parseLineCSV(QString(line.c_str()));
             foreach (QString rv, inputRVnames) {
                 QRadioButton* SIMButton = new QRadioButton(this);
-                QRadioButton* ENVButton = new QRadioButton(this);
+                QRadioButton* EVTButton = new QRadioButton(this);
                 QButtonGroup* buttonGroup = new QButtonGroup(this);
 
                 SIMButtonList.append(SIMButton);
-                ENVButtonList.append(ENVButton);
+                EVTButtonList.append(EVTButton);
                 buttonGroup->addButton(SIMButton, 1);
-                buttonGroup->addButton(ENVButton, 2);
+                buttonGroup->addButton(EVTButton, 2);
                 buttonGroupList.append(buttonGroup);
                 constraintsLabelList.append(new QLabel(rv));
             }
@@ -724,29 +726,29 @@ int PLoMInputWidget::parseInputDataForRV(QString name1){
 
 
     // Add parsed RV to constraints:
-    advConstraintsLayout->addWidget(ENVConstraintLabel, 4, 0);
+    advConstraintsLayout->addWidget(EVTConstraintLabel, 4, 0);
     advConstraintsLayout->addWidget(SIMConstraintLabel, 4, 1);
     for (int i = 0; i < inputRVnames.length(); i++){
         advConstraintsLayout->addWidget(SIMButtonList.at(i), 5+i, 0);
-        advConstraintsLayout->addWidget(ENVButtonList.at(i), 5+i, 1);
+        advConstraintsLayout->addWidget(EVTButtonList.at(i), 5+i, 1);
         advConstraintsLayout->addWidget(constraintsLabelList.at(i), 5+i, 2);
 
         if (theAdvancedCheckBox->isChecked()){
             SIMButtonList.at(i)->setVisible(true); // Only visible if adv opt checked
-            ENVButtonList.at(i)->setVisible(true);
+            EVTButtonList.at(i)->setVisible(true);
             constraintsLabelList.at(i)->setVisible(true);
         } else {
             SIMButtonList.at(i)->setVisible(false); // Only visible if adv opt checked
-            ENVButtonList.at(i)->setVisible(false);
+            EVTButtonList.at(i)->setVisible(false);
             constraintsLabelList.at(i)->setVisible(false);
         }
 
         if (theConstraintsButton->isChecked()){
             SIMButtonList.at(i)->setDisabled(0); // Only enabled if add constraint checked
-            ENVButtonList.at(i)->setDisabled(0);
+            EVTButtonList.at(i)->setDisabled(0);
         } else {
             SIMButtonList.at(i)->setDisabled(1); // Only enabled if add constraint checked
-            ENVButtonList.at(i)->setDisabled(1);
+            EVTButtonList.at(i)->setDisabled(1);
         }
 
 

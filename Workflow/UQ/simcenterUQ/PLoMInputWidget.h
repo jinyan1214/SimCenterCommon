@@ -126,7 +126,7 @@ private:
     QLabel * theConstraintsLabel2;
     QLabel * numIterLabel;
     QLabel * tolIterLabel;
-    QLabel * ENVConstraintLabel;
+    QLabel * EVTConstraintLabel;
     QLabel * SIMConstraintLabel;
 
     //InputWidgetParameters *theParameters;
@@ -155,7 +155,7 @@ private:
 
     QStringList inputRVnames;
     QList<QRadioButton*> SIMButtonList;
-    QList<QRadioButton*> ENVButtonList;
+    QList<QRadioButton*> EVTButtonList;
     QList<QLabel*> constraintsLabelList;
     QList<QButtonGroup*> buttonGroupList;
 
