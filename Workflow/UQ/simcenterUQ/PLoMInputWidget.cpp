@@ -609,8 +609,21 @@ PLoMInputWidget::outputToJSON(QJsonObject &jsonObj){
             jsonObj["constraintsFile"] = constraintsPath->text();
             jsonObj["numIter"] = numIter->text().toInt();
             jsonObj["tolIter"] = tolIter->text().toDouble();
-            //If training datase is import data file and raw data
-            if
+            //If raw data is input
+            if (m_typeButtonsGroup->button(0)->isChecked()) {
+                QJsonArray EVTConstraints;
+                QJsonArray SIMConstraints;
+                for (int i = 0; i < buttonGroupList.length(); i++){
+                    if (buttonGroupList.at(i)->button(0)->isChecked()){
+                        EVTConstraints.append(inputRVnames.at(i));
+                    } else if (buttonGroupList.at(i)->button(1)->isChecked()){
+                        SIMConstraints.append(inputRVnames.at(i));
+                    }
+                }
+                jsonObj["ENVConstraints"] = EVTConstraints;
+                jsonObj["SIMConstraints"] = SIMConstraints;
+
+            }
         }
     }
     jsonObj["parallelExecution"]=false;
@@ -676,8 +689,8 @@ int PLoMInputWidget::parseInputDataForRV(QString name1){
 
                 SIMButtonList.append(SIMButton);
                 EVTButtonList.append(EVTButton);
-                buttonGroup->addButton(SIMButton, 1);
-                buttonGroup->addButton(EVTButton, 2);
+                buttonGroup->addButton(SIMButton, 0);
+                buttonGroup->addButton(EVTButton, 1);
                 buttonGroupList.append(buttonGroup);
                 constraintsLabelList.append(new QLabel(rv));
             }
