@@ -620,7 +620,7 @@ PLoMInputWidget::outputToJSON(QJsonObject &jsonObj){
                         SIMConstraints.append(inputRVnames.at(i));
                     }
                 }
-                jsonObj["ENVConstraints"] = EVTConstraints;
+                jsonObj["EVTConstraints"] = EVTConstraints;
                 jsonObj["SIMConstraints"] = SIMConstraints;
 
             }
