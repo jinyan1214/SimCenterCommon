@@ -55,6 +55,9 @@ class QComboBox;
 class QTabWidget;
 class QRadioButton;
 class QGridLayout;
+class SimCenterIntensityMeasureCombo;
+class SimCenterUnitsCombo;
+class SimCenterIM;
 
 #include "SC_FileEdit.h"
 #include "SC_DoubleLineEdit.h"
@@ -84,6 +87,8 @@ public slots:
     void setConstraints(bool tog);
     void doAdvancedSetup(bool tog);
     void setDiffMaps(bool tog);
+private slots:
+    void onRadioButtonGroupClicked(int EVTorSIM);
 private:
     QLineEdit *ratioNewSamples;
     QLineEdit *epsilonPCA;
@@ -128,6 +133,9 @@ private:
     QLabel * tolIterLabel;
     QLabel * EVTConstraintLabel;
     QLabel * SIMConstraintLabel;
+    QLabel * IMConstraintLabel;
+    QLabel * PeriodsConstraintLabel;
+    QLabel * constraintNameLabel;
 
     //InputWidgetParameters *theParameters;
     //InputWidgetEDP *theEdpWidget;
@@ -156,6 +164,9 @@ private:
     QStringList inputRVnames;
     QList<QRadioButton*> SIMButtonList;
     QList<QRadioButton*> EVTButtonList;
+    QList<SimCenterIntensityMeasureCombo*> imComboList;
+    QList<SimCenterUnitsCombo*> unitComboList;
+    QList<SimCenterIM*> imUnitComboList;
     QList<QLabel*> constraintsLabelList;
     QList<QButtonGroup*> buttonGroupList;
 

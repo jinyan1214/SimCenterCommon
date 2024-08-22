@@ -138,6 +138,10 @@ SimCenterIM::~SimCenterIM()
 
 }
 
+void SimCenterIM::removeRadioButton(){
+    imUnitLayout->removeWidget(button);
+}
+
 
 
 void SimCenterIM::setCurrentIMtoPSA(void)

@@ -71,6 +71,7 @@ public:
     void setLabelVisible(bool tog);
     void addGridField(void);  // additionally for GM selection -sy
     void setCurrentIMtoPSA(void);
+    void removeRadioButton(void);
     QLineEdit *minVal, *maxVal, *numBins;  // additionally for GM selection
     int nCol;
 

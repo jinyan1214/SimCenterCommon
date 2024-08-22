@@ -68,6 +68,9 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include "SC_DoubleLineEdit.h"
 #include "SC_FileEdit.h"
 #include "SC_CheckBox.h"
+#include "SimCenterIntensityMeasureWidget.h"
+#include "SimCenterIntensityMeasureCombo.h"
+#include "SimCenterUnitsCombo.h"
 
 PLoMInputWidget::PLoMInputWidget(QWidget *parent)
     : UQ_Method(parent)
@@ -414,6 +417,11 @@ PLoMInputWidget::PLoMInputWidget(QWidget *parent)
 
     SIMConstraintLabel = new QLabel("SIM");
     EVTConstraintLabel = new QLabel("EVT");
+    constraintNameLabel = new QLabel("Constraint Name");
+    IMConstraintLabel = new QLabel("        IM");
+    // An ugly way to change the space between gridlayout columns
+    PeriodsConstraintLabel = new QLabel("                                                                         Periods");
+
     //
     advComboWidget->addTab(advConstraintsWidget, "Constraints");
 
@@ -615,6 +623,8 @@ PLoMInputWidget::outputToJSON(QJsonObject &jsonObj){
                 QJsonArray SIMConstraints;
                 for (int i = 0; i < buttonGroupList.length(); i++){
                     if (buttonGroupList.at(i)->button(0)->isChecked()){
+                        QJsonObject obj;
+                        imUnitComboList.at(i)->outputToJSON(obj);
                         EVTConstraints.append(inputRVnames.at(i));
                     } else if (buttonGroupList.at(i)->button(1)->isChecked()){
                         SIMConstraints.append(inputRVnames.at(i));
@@ -676,9 +686,27 @@ int PLoMInputWidget::parseInputDataForRV(QString name1){
             }
             buttonGroupList.clear();
 
+            // Remove the IM combo lists
+            for(int i = 0; i < imComboList.length(); i++){
+                delete imComboList.at(i);
+            }
+            imComboList.clear();
+            for(int i = 0; i < unitComboList.length(); i++){
+                delete unitComboList.at(i);
+            }
+            unitComboList.clear();
+            for(int i = 0; i < imUnitComboList.length(); i++){
+                delete imUnitComboList.at(i);
+            }
+            imUnitComboList.clear();
+
+
             // Remove the EVT and SIM labels
             advConstraintsLayout->removeWidget(EVTConstraintLabel);
             advConstraintsLayout->removeWidget(SIMConstraintLabel);
+            advConstraintsLayout->removeWidget(IMConstraintLabel);
+            advConstraintsLayout->removeWidget(PeriodsConstraintLabel);
+            advConstraintsLayout->removeWidget(constraintNameLabel);
 
             // Parse the hearder line and add them to lists
             inputRVnames = parseLineCSV(QString(line.c_str()));
@@ -693,6 +721,22 @@ int PLoMInputWidget::parseInputDataForRV(QString name1){
                 buttonGroup->addButton(EVTButton, 1);
                 buttonGroupList.append(buttonGroup);
                 constraintsLabelList.append(new QLabel(rv));
+
+                // Connect radio group to slot to show IM combo widget
+                connect(buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(onRadioButtonGroupClicked(int)));
+
+                // create a im combo widget
+                SimCenterIntensityMeasureCombo *imCombo = new SimCenterIntensityMeasureCombo(SimCenterEQ::IntensityMeasure::ALL,rv);
+                QString unitName = "Unit"+ rv;
+                SimCenterUnitsCombo *unitCombo = new SimCenterUnitsCombo(SimCenter::Unit::ALL,unitName);
+                SimCenterIM *imUnitCombo = new SimCenterIM(imCombo, unitCombo);
+                imUnitCombo->setCurrentIMtoPSA(); // Default Sa
+                imUnitCombo->setLabelVisible(false);
+                imUnitCombo->removeRadioButton();
+                imComboList.append(imCombo);
+                unitComboList.append(unitCombo);
+                imUnitComboList.append(imUnitCombo);
+
             }
         }
         for(size_t i=0; i<line.size(); i++){
@@ -741,10 +785,30 @@ int PLoMInputWidget::parseInputDataForRV(QString name1){
     // Add parsed RV to constraints:
     advConstraintsLayout->addWidget(EVTConstraintLabel, 4, 0);
     advConstraintsLayout->addWidget(SIMConstraintLabel, 4, 1);
+    advConstraintsLayout->addWidget(constraintNameLabel, 4, 2);
+    advConstraintsLayout->addWidget(IMConstraintLabel, 4, 3);
+    advConstraintsLayout->addWidget(PeriodsConstraintLabel, 4, 4);
+
+//    QWidget* IMlabels = new QWidget();
+//    QGridLayout* imUnitLayout = new QGridLayout();
+//    imUnitLayout->addWidget(new QLabel("IM"),0,1);
+//    imUnitLayout->addWidget(new QLabel(tr("Periods")),0,3);
+//    imUnitLayout->setColumnStretch(0, 1);
+//    imUnitLayout->setColumnStretch(1, 1);
+//    imUnitLayout->setColumnStretch(3, 1);
+//    IMlabels->setLayout(imUnitLayout);
+//    advConstraintsLayout->addWidget(IMlabels, 4, 3);
+
+
+    IMConstraintLabel->setVisible(false);
+    PeriodsConstraintLabel->setVisible(false);
     for (int i = 0; i < inputRVnames.length(); i++){
         advConstraintsLayout->addWidget(SIMButtonList.at(i), 5+i, 0);
         advConstraintsLayout->addWidget(EVTButtonList.at(i), 5+i, 1);
         advConstraintsLayout->addWidget(constraintsLabelList.at(i), 5+i, 2);
+//        advConstraintsLayout->addWidget(imUnitComboList.at(i), 5+i, 3, 1, 3);
+        advConstraintsLayout->addWidget(imUnitComboList.at(i), 5+i, 3, 1, 2);
+        imUnitComboList.at(i)->setVisible(false);
 
         if (theAdvancedCheckBox->isChecked()){
             SIMButtonList.at(i)->setVisible(true); // Only visible if adv opt checked
@@ -763,12 +827,35 @@ int PLoMInputWidget::parseInputDataForRV(QString name1){
             SIMButtonList.at(i)->setDisabled(1); // Only enabled if add constraint checked
             EVTButtonList.at(i)->setDisabled(1);
         }
+    }
+//    advConstraintsLayout->setColumnStretch(0, 1); // Column 2 will have a stretch factor of 1
+//    advConstraintsLayout->setColumnStretch(1, 1);
+//    advConstraintsLayout->setColumnStretch(2, 1);
+    advConstraintsLayout->setColumnStretch(3, 3);
+    advConstraintsLayout->setColumnStretch(4, 1);
+//    advConstraintsLayout->setColumnStretch(4, 1);
+    return 0;
+}
 
-
-
+void PLoMInputWidget::onRadioButtonGroupClicked(int EVTorSIM) {
+    int numOfEVT = 0;
+    for (int i = 0; i < buttonGroupList.length(); ++i) {
+        int checkedID = buttonGroupList.at(i)->checkedId();
+        if (checkedID==0){
+            imUnitComboList.at(i)->setVisible(true);
+            numOfEVT++;
+        } else {
+            imUnitComboList.at(i)->setVisible(false);
+        }
+    }
+    if (numOfEVT>0) {
+        IMConstraintLabel->setVisible(true);
+        PeriodsConstraintLabel->setVisible(true);
+    } else {
+        IMConstraintLabel->setVisible(false);
+        PeriodsConstraintLabel->setVisible(false);
     }
 
-    return 0;
 }
 
 int PLoMInputWidget::parseOutputDataForQoI(QString name1){
