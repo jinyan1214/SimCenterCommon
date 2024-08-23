@@ -621,16 +621,66 @@ PLoMInputWidget::outputToJSON(QJsonObject &jsonObj){
             if (m_typeButtonsGroup->button(0)->isChecked()) {
                 QJsonArray EVTConstraints;
                 QJsonArray SIMConstraints;
+                QJsonObject EVTConstraintObj;
+
+                QJsonObject PSDConstraintObj;
+                QJsonArray PSDPeriodsArray;
+                bool includePSD = false;
+
+                QJsonObject PSVConstraintObj;
+                QJsonArray PSVPeriodsArray;
+                bool includePSV = false;
+
+                QJsonObject PSAConstraintObj;
+                QJsonArray PSAPeriodsArray;
+                bool includePSA = false;
+
+                QJsonObject SaRatioConstraintObj;
+                QJsonArray SaRatioPeriodsArray;
+                bool includeSaRatio = false;
+
                 for (int i = 0; i < buttonGroupList.length(); i++){
-                    if (buttonGroupList.at(i)->button(0)->isChecked()){
+                    if (buttonGroupList.at(i)->button(0)->isChecked()){ // EVT
                         QJsonObject obj;
-                        imUnitComboList.at(i)->outputToJSON(obj);
-                        EVTConstraints.append(inputRVnames.at(i));
+                        if(!imUnitComboList.at(i)->outputToJSON(obj)){
+                            errorMessage(QString("The EVT constraint ") + inputRVnames.at(i) + QString(" is not properly defined."));
+                        }
+                        EVTConstraintObj[inputRVnames.at(i)] = obj;
+//                        // If it is one of PSA, PSV, PSD or SaRatio
+//                        if (obj.contains("PSA")) {
+//                            PSAPeriodsArray.append(obj["Period"]);
+//                            includePSA = true;
+//                        } else if (obj.contains("PSV")){
+//                            PSVPeriodsArray.append(obj["Period"]);
+//                            includePSV = true;
+//                        } else if (obj.contains("PSD")){
+//                            PSDPeriodsArray.append(obj["Period"]);
+//                            includePSD = true;
+//                        } else if (obj.contains("sa")){
+//                            SaRatioPeriodsArray.append(obj["Period"]);
+//                            includeSaRatio = true;
+//                        } else{
+//                            // If not
+//                            for (auto it = obj.begin(); it != obj.end(); ++it) {
+//                                EVTConstraintObj.insert(it.key(), it.value());
+//                            }
+//                        }
                     } else if (buttonGroupList.at(i)->button(1)->isChecked()){
                         SIMConstraints.append(inputRVnames.at(i));
                     }
                 }
-                jsonObj["EVTConstraints"] = EVTConstraints;
+//                if(includePSD){
+//                    PSDConstraintObj["Unit"] = "=in";
+//                    PSDConstraintObj["Periods"] = PSDPeriodsArray;
+//                    EVTConstraintObj["Sa"] =  QJsonObject{{"PSA", PSDConstraintObj}}
+//                }
+//                PSAConstraintObj["Unit"] = "g";
+//                PSAConstraintObj["Periods"] = PSAPeriodsArray;
+
+//                PSVConstraintObj["Unit"] = "=in/sec";
+//                PSVConstraintObj["Periods"] = PSVPeriodsArray;
+
+                jsonObj["EVTConstraints"] = EVTConstraintObj;
                 jsonObj["SIMConstraints"] = SIMConstraints;
 
             }

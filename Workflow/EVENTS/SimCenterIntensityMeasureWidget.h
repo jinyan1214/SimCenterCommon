@@ -48,6 +48,7 @@ class QRadioButton;
 class QRegularExpressionValidator;
 class QLineEdit;
 
+#include <QMap>
 #include <QGroupBox>
 #include <QLabel>
 //#include "JsonSerializable.h"
@@ -72,6 +73,7 @@ public:
     void addGridField(void);  // additionally for GM selection -sy
     void setCurrentIMtoPSA(void);
     void removeRadioButton(void);
+    bool outputToJSON(QJsonObject &jsonObject);
     QLineEdit *minVal, *maxVal, *numBins;  // additionally for GM selection
     int nCol;
 
@@ -81,6 +83,7 @@ public slots:
 signals:
     void numBinsChanged(void);
 private:
+    QMap<QString, QString> IMtoUnitMap;
 };
 
 class SimCenterIntensityMeasureWidget : public SimCenterWidget

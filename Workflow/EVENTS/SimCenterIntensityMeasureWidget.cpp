@@ -130,12 +130,60 @@ SimCenterIM::SimCenterIM(SimCenterIntensityMeasureCombo *theIM, SimCenterUnitsCo
     this->setLayout(imUnitLayout);
     connect(myIM, SIGNAL(currentTextChanged(const QString&)), this, SLOT(handleIMChanged(const QString&)));
     nCol = 4;
+
+    IMtoUnitMap.insert("PGA","g");
+    IMtoUnitMap.insert("PGV","in/sec");
+    IMtoUnitMap.insert("PGD","in");
+    IMtoUnitMap.insert("PSA","g");
+    IMtoUnitMap.insert("PSV","in/sec");
+    IMtoUnitMap.insert("PSD","in");
+    IMtoUnitMap.insert("SaRatio","scalar");
+    IMtoUnitMap.insert("Ia","in/sec");
+    IMtoUnitMap.insert("DS575","sec");
+    IMtoUnitMap.insert("DS595","sec");
 }
 
 
 SimCenterIM::~SimCenterIM()
 {
 
+}
+
+bool SimCenterIM::outputToJSON(QJsonObject &obj){
+    QString periodsText = periodLine->text();
+    QString IMstring = myIM->getCurrentIMString();
+    QJsonArray periodsArray;
+    if (IMstring.compare("PSA") == 0 ||
+        IMstring.compare("PSV") == 0 ||
+        IMstring.compare("PSD") == 0) {
+        bool isDouble;
+        double period = periodsText.trimmed().toDouble(&isDouble);
+        if(isDouble){
+            periodsArray.append(period);
+        } else {
+            errorMessage(QString("The period ") + periodsText + QString(" is not allowed for ") + IMstring);
+            return false;
+        }
+    } else if (IMstring.compare("SaRatio")==0) {
+        QStringList stringList = periodsText.split(",");
+        for (const QString &str : stringList) {
+            bool isDouble;
+            double period = str.trimmed().toDouble(&isDouble);
+            if(isDouble){
+                periodsArray.append(period);
+            } else {
+                errorMessage(QString("The period ") + periodsText + QString(" is not allowed for ") + IMstring);
+                return false;
+            }
+        }
+    } else if(IMstring.compare("UNDEFINED")==0) {
+        obj[IMstring] = QJsonObject{{"Periods", periodsArray}, {"Unit", ""}};
+        return true;
+    }
+
+    QString unit = IMtoUnitMap.value(IMstring);
+    obj[IMstring] = QJsonObject{{"Periods", periodsArray}, {"Unit",unit}};
+    return true;
 }
 
 void SimCenterIM::removeRadioButton(){
