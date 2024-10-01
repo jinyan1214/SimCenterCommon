@@ -1,8 +1,7 @@
-#ifndef SIMCENTER_PREFERENCES_ALT_H
-#define SIMCENTER_PREFERENCES_ALT_H
-
+#ifndef MULTI_FIDELITY_BUILD_MODEL
+#define MULTI_FIDELITY_BUILD_MODEL
 /* *****************************************************************************
-Copyright (c) 2016-2017, The Regents of the University of California (Regents).
+Copyright (c) 2016-2021, The Regents of the University of California (Regents).
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,51 +36,50 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 *************************************************************************** */
 
-// Written: fmckenna
+// Written by: Frank McKenna
 
-#include <QDialog>
-#include <QCheckBox>
+#include "SimCenterAppWidget.h"
 
-class QLineEdit;
-class QVBoxLayout;
+#include <QGroupBox>
+#include <QVector>
+#include <QGridLayout>
+#include <QComboBox>
+#include <QJsonArray>
+#include "SC_FileEdit.h"
+#include "SimCenterAppSelection.h"
 
-class SimCenterPreferences : public QDialog
+class InputWidgetParameters;
+
+class MultiFidelityBuildingModel : public SimCenterAppWidget
 {
     Q_OBJECT
-
-private:
-    explicit SimCenterPreferences(QWidget *parent = 0);
-    ~SimCenterPreferences();
-    static SimCenterPreferences *theInstance;
-
 public:
-    static SimCenterPreferences *getInstance(QWidget *parent = 0);
-    QString getPython(void);
-    QString getAppDir(void);
-    QString getRemoteAppDir(void);
-    QString getRemoteAgaveApp(void);
-    QString getLocalWorkDir(void);
-    QString getRemoteWorkDir(void);
+    explicit MultiFidelityBuildingModel(QWidget *parent = 0);
+    ~MultiFidelityBuildingModel();
+
+    bool outputToJSON(QJsonObject &rvObject) override;
+    bool inputFromJSON(QJsonObject &rvObject) override;
+    bool outputAppDataToJSON(QJsonObject &rvObject) override;
+    bool inputAppDataFromJSON(QJsonObject &rvObject) override;
+    bool copyFiles(QString &dirName) override;
+    bool outputCitation(QJsonObject &jsonObject) override;
+
+
+     // copy main file to new filename ONLY if varNamesAndValues not empy
+    void setFileName(QString filnema1);
 
 public slots:
-    void savePreferences(bool);
-    void resetPreferences(bool);
-    void loadPreferences(void);
+   void clear(void) override;
+   void parseDatabase(QString fileName);
 
 private:
-    QLineEdit *python;
-    QLineEdit *opensees;
-    QLineEdit *dakota;
-    QLineEdit *localWorkDir;
-    QLineEdit *remoteWorkDir;
-    QLineEdit *appDir;
-    QLineEdit *remoteAppDir;
-    QLineEdit *remoteAgaveApp;
-    QVBoxLayout *layout;
-    QCheckBox* customAppDirCheckBox;
-    QCheckBox* customOpenSeesCheckBox;
-    QCheckBox* customDakotaCheckBox;
+    SC_FileEdit *model_database;
+    SimCenterAppWidget *mdofLU ;
+    QJsonObject getDatabaseSchema();
+    QVBoxLayout *model_details;
+    void clearModelDetails();
+    QStringList directoriesToBeCopied;
+    QJsonArray newJsonArr;
 };
 
-
-#endif // SIMCENTER_PREFERENCES_ALT_H
+#endif // MULTI_FIDELITY_BUILD_MODEL

@@ -1,3 +1,6 @@
+#ifndef JSON_FUNCTIONS_H
+#define JSON_FUNCTIONS_H
+
 /* *****************************************************************************
 Copyright (c) 2016-2017, The Regents of the University of California (Regents).
 All rights reserved.
@@ -34,86 +37,21 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 *************************************************************************** */
 
-// Written: fmckenna
+/**
+ *  @author  sangri
+ *  @date    9/2024
+ *  @version 1.0
+ *
+ *  @section DESCRIPTION
+ *
+ *  This is to make it easy to create a json file
+ */
 
-#include <SimCenterWidget.h>
-#include <Utils/ProgramOutputDialog.h>
-#include <GoogleAnalytics.h>
+#include <QString>
+#include <QJsonObject>
 
+// sy - do we need a namespace?
+bool parseJsonFile(QString filePath, QJsonValue &jsonVal, QString &errorMsg);
+bool validateJson(const QJsonValue &jsonValue, const QJsonObject &schema, QString &errorMsg, QString key, bool integerAllowedForArray=true);
 
-SimCenterWidget::SimCenterWidget(QWidget *parent)
-    :QWidget(parent)
-{
-    progressDialog = ProgramOutputDialog::getInstance(this);
-}
-
-SimCenterWidget::~SimCenterWidget()
-{
-
-}
-
-
-bool
-SimCenterWidget::outputToJSON(QJsonObject &jsonObject)
-{
-    Q_UNUSED(jsonObject);
-    return true;
-}
-
-bool
-SimCenterWidget::inputFromJSON(QJsonObject &jsonObject)
-{
-    Q_UNUSED(jsonObject);
-    return true;
-}
-
-void
-SimCenterWidget::statusMessage(const QString& message)
-{
-    if(message.isEmpty())
-        return;
-
-    progressDialog->appendText(message);
-}
-
-void
-SimCenterWidget::errorMessage(const QString& message)
-{
-    if(message.isEmpty())
-        return;
-
-    progressDialog->appendErrorMessage(message);
-    GoogleAnalytics::Report("SimcenterWidgetErrorMessage", message);
-}
-
-void
-SimCenterWidget::fatalMessage(const QString& message)
-{
-    GoogleAnalytics::Report("SimcenterWidgetFatalMessage", message);
-    progressDialog->fatalMessage(message);
-}
-
-void
-SimCenterWidget::infoMessage(const QString& message)
-{
-    if(message.isEmpty())
-        return;
-
-    progressDialog->appendInfoMessage(message);
-}
-
-ProgramOutputDialog*
-SimCenterWidget::getProgressDialog() const
-{
-    return progressDialog;
-}
-
-
-
-void
-SimCenterWidget::blankLineMessage(void)
-{
-    progressDialog->appendBlankLine();
-}
-
-
+#endif // JSON_FUNCTIONS_H
